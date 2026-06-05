@@ -1,0 +1,23 @@
+# check if there is at least one published port
+
+#! sqlserver-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: sqlserver-published
+    namespace: taskapi
+    labels:
+        com.docker.compose.project: taskapi
+        com.docker.compose.service: sqlserver
+spec:
+    selector:
+        com.docker.compose.project: taskapi
+        com.docker.compose.service: sqlserver
+    ports:
+        - name: sqlserver-1434
+          port: 1434
+          protocol: TCP
+          targetPort: sqlserver-1433
+
+# check if there is at least one published port

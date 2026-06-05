@@ -1,0 +1,22 @@
+# Stage 1: Build the application
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copy csproj and restore dependencies (efficient caching)
+COPY ["UserAPI.csproj", "./"]
+RUN dotnet restore "UserAPI.csproj"
+
+# Copy the remaining files and build the app
+COPY . .
+RUN dotnet publish -c Release -o /app
+
+# Stage 2: Run the application
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+EXPOSE 8080
+
+# Copy only the compiled output from the build stage
+COPY --from=build /app .
+
+# Start the API
+ENTRYPOINT ["dotnet", "UserAPI.dll"]

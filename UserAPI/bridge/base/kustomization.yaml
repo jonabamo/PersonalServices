@@ -1,0 +1,14 @@
+#! kustomization.yaml
+# Generated code, do not edit
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+    - 0-taskapi-namespace.yaml
+    - default-network-policy.yaml
+    - sqlserver-deployment.yaml
+    - sqlserver-expose.yaml
+    - sqlserver-service.yaml
+    - sqlserver-sqlserver-data-persistentVolumeClaim.yaml
+    - users-api-deployment.yaml
+    - users-api-expose.yaml
+    - users-api-service.yaml

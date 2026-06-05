@@ -1,0 +1,18 @@
+#! sqlserver-expose.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: sqlserver
+    namespace: taskapi
+    labels:
+        com.docker.compose.project: taskapi
+        com.docker.compose.service: sqlserver
+spec:
+    selector:
+        com.docker.compose.project: taskapi
+        com.docker.compose.service: sqlserver
+    ports:
+        - name: sqlserver-1433
+          port: 1433
+          targetPort: sqlserver-1433

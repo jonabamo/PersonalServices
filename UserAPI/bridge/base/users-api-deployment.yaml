@@ -1,0 +1,37 @@
+#! users-api-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: users-api
+    namespace: taskapi
+    labels:
+        com.docker.compose.project: taskapi
+        com.docker.compose.service: users-api
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: taskapi
+            com.docker.compose.service: users-api
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: taskapi
+                com.docker.compose.service: users-api
+                com.docker.compose.network.default: "true"
+        spec:
+            containers:
+                - name: users-api
+                  image: taskapi-users-api
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: ASPNETCORE_ENVIRONMENT
+                      value: "Development"
+                    - name: ConnectionStrings__DefaultConnection
+                      value: "Server=sqlserver,1433;Database=TaskAPIDb;User Id=sa;Password=Your_Str0ng_P@ssw0rd!;TrustServerCertificate=True;MultipleActiveResultSets=true;"
+                  ports:
+                    - name: users-api-8080
+                      containerPort: 8080
