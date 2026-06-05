@@ -1,0 +1,44 @@
+#! sqlserver-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: sqlserver
+    namespace: taskapi
+    labels:
+        com.docker.compose.project: taskapi
+        com.docker.compose.service: sqlserver
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: taskapi
+            com.docker.compose.service: sqlserver
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: taskapi
+                com.docker.compose.service: sqlserver
+                com.docker.compose.network.default: "true"
+        spec:
+            containers:
+                - name: sqlserver
+                  image: mcr.microsoft.com/mssql/server:2022-latest
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: ACCEPT_EULA
+                      value: "Y"
+                    - name: MSSQL_SA_PASSWORD
+                      value: "Your_Str0ng_P@ssw0rd!"
+                  ports:
+                    - name: sqlserver-1433
+                      containerPort: 1433
+                  volumeMounts:
+                    - name: var-opt-mssql
+                      mountPath: /var/opt/mssql
+            volumes:
+                - name: var-opt-mssql
+                  persistentVolumeClaim:
+                    claimName: sqlserver-sqlserver-data
