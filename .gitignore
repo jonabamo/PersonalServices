@@ -1,3 +1,5 @@
-.vs
-UserAPI/bin
-UserAPI/obj
+.vs/
+./UserAPI/obj/*
+./UserAPI/bin/Debug/*
+./UserAPI/bin/Release/*
+.vs/ServiceAPI/v17/.suo
