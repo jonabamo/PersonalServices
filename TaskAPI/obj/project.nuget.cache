@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Ku9UQiIKmBs=",
+  "dgSpecHash": "mhLOeZHPhoU=",
   "success": true,
-  "projectFilePath": "D:\\GitHub\\RefrescarNET\\TaskAPI\\TaskAPI.csproj",
+  "projectFilePath": "D:\\GitHub\\PersonalServices\\TaskAPI\\TaskAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jonathan\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\jonathan\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
