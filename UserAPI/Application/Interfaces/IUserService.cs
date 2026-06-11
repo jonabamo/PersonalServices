@@ -1,7 +1,6 @@
 namespace UserAPI.Application.Interfaces;
 
-using UserAPI.Application.DTOs.Requests;
-using UserAPI.Application.DTOs.Responses;
+using UserAPI.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity.Data;
 

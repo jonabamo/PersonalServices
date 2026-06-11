@@ -1,18 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using UserAPI.Application.DTOs.Requests;
+using UserAPI.Application.DTOs;
 using UserAPI.Application.Interfaces;
 
 namespace UserAPI.Controllers;
-
-// [ApiController]
-// [Route("api/[controller]")]
-// public class TestController : ControllerBase
-// {
-//     [HttpGet]
-//     public IActionResult Get() => Ok("API funcionando!!!!");
-// }
 
 [ApiController]
 [Route("api/user")] 
@@ -20,6 +12,15 @@ public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly ILoginService _loginService;
+
+    // 200 OK
+    // 201 Created
+    // 400 Bad Request
+    // 401 Unauthorized
+    // 403 Forbidden
+    // 404 Not Found
+    // 409 Conflict
+    // 500 Internal Server Error
 
     public UserController(IUserService userService, ILoginService loginService)
     {
@@ -39,7 +40,9 @@ public class UserController : ControllerBase
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
         var result = await _userService.CreateUser(request);
-        return result.IsSuccess ? Ok(result) : StatusCode(result.StatusCode, result);
+        return result.Success 
+        ? StatusCode(StatusCodes.Status201Created, result) 
+        : StatusCode(result.StatusCode, result);
     }
 
     [HttpPost("/create-users")]
@@ -47,28 +50,41 @@ public class UserController : ControllerBase
     public async Task<IActionResult> CreateUserBulk([FromBody] List<CreateUserRequest> request)
     {
         var results = await _userService.CreateUsers(request);
-        return results.All(r => r.IsSuccess) ? Ok(results) : StatusCode(results.FirstOrDefault()?.StatusCode ?? 400, results);
+        return results.All(r => r.Success) 
+        ? StatusCode(StatusCodes.Status201Created, results) 
+        : StatusCode(results.FirstOrDefault()?.StatusCode ?? 400, results);
     }
 
     [HttpPut("/update-user/{id}")]
     [Authorize(Policy = "CanEdit")]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
     {
-        return Ok(await _userService.UpdateUserById(id, request));
+        //return Ok(await _userService.UpdateUserById(id, request));
+        var result = await _userService.UpdateUserById(id, request);
+        return result.Success 
+        ? StatusCode(StatusCodes.Status201Created, result) 
+        : StatusCode(result.StatusCode, result);
     }
 
     [HttpDelete("/delete-user/{id}")]
     [Authorize(Policy = "CanDelete")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
-        return Ok(await _userService.DeleteUserById(id));
+        var result = await _userService.DeleteUserById(id);
+        return result.Success 
+        ? StatusCode(StatusCodes.Status201Created, result) 
+        : StatusCode(result.StatusCode, result);
+        
     }
 
     [HttpDelete("/delete-users")]
     [Authorize(Policy = "CanDelete")]
-    public async Task<string> DeleteAll()
+    public async Task<IActionResult> DeleteAll()
     {
-        return (await _userService.DeleteAllUsers()).Message;
+        var result = await _userService.DeleteAllUsers();
+        return result.Success
+        ? StatusCode(StatusCodes.Status201Created, result) 
+        : StatusCode(result.StatusCode, result);
     }
 
     [HttpGet("/get-all-users")]

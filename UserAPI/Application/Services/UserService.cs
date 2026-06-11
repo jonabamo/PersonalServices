@@ -1,13 +1,5 @@
-using Azure.Core;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using UserAPI.Application.DTOs.Requests;
-using UserAPI.Application.DTOs.Responses;
+using UserAPI.Application.DTOs;
 using UserAPI.Application.Interfaces;
 using UserAPI.Common;
 using UserAPI.Data;
@@ -19,11 +11,13 @@ namespace UserAPI.Application.Services
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IRoleService _roleService;
 
-        public UserService(AppDbContext context, IConfiguration configuration)
+        public UserService(AppDbContext context, IConfiguration configuration, IRoleService roleService)
         {
             _context = context;
             _configuration = configuration;
+            _roleService = roleService;
         }
 
         public async Task<long> GetUsersCountAsync()
@@ -34,7 +28,17 @@ namespace UserAPI.Application.Services
         public async Task<List<GetUserResponse>> GetAllUsers()
         {
             var users = await _context.Users.AsNoTracking().ToListAsync();
-            return users.Select(user => GetUserResponse.ToResponse(user)).ToList();
+
+            var responses = new List<GetUserResponse>();
+
+                for (int i = 0; i < users.Count; i++)
+                {
+                    var rolePermissions = await _roleService.GetAllRolePermissions(users[i].Role);
+                    responses.Add(GetUserResponse.ToResponse(users[i], rolePermissions));
+                }
+
+            return responses;
+            //return users.Select(GetUserResponse.ToResponse).ToList();
         }
 
         public async Task<string> GetUserPassword(string userEmail)
@@ -47,7 +51,17 @@ namespace UserAPI.Application.Services
         public async Task<List<GetUserResponse>> GetUsersStartsWith(string startsWith)
         {
             var users = await _context.Users.AsNoTracking().Where(u => u.Name.StartsWith(startsWith)).ToListAsync();
-            return users.Select(user => GetUserResponse.ToResponse(user)).ToList();
+
+            var responses = new List<GetUserResponse>();
+
+                for (int i = 0; i < users.Count; i++)
+                {
+                    var rolePermissions = await _roleService.GetAllRolePermissions(users[i].Role);
+                    responses.Add(GetUserResponse.ToResponse(users[i], rolePermissions));
+                }
+
+            return responses;
+            //return users.Select(GetUserResponse.ToResponse).ToList();
         }
 
         public async Task<CreateUserResponse> CreateUser(CreateUserRequest request)
@@ -57,26 +71,28 @@ namespace UserAPI.Application.Services
                 var user = new User(request.Name, request.Email, request.Role, Utils.SetPassword(request.Password));
                 await _context.Users.AddAsync(user);
                 await _context.SaveChangesAsync();
-                return CreateUserResponse.ToSuccessResponse(user.Name, user.Email);
+                var rolePermissions = await _roleService.GetAllRolePermissions(request.Role);
+                return CreateUserResponse.ToResponse(user, rolePermissions);
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException is SqlException sqlException)
-                {
-                    switch (sqlException.Number)
-                    {
-                        case 8152 or 2628: // String or binary would be truncated
-                            return request.Name.Length > 50 ? CreateUserResponse.ToTruncateResponse("Name") : CreateUserResponse.ToTruncateResponse("Email");
-                        case 2601: // Unique index constraint violation
-                            return CreateUserResponse.ToDuplicateResponse();
-                        case 547: // Foreign key constraint violation
-                            return CreateUserResponse.ToErrorResponse();
-                        case 2627: // Unique constraint violation
-                            return CreateUserResponse.ToErrorResponse();
-                        default:
-                            return CreateUserResponse.ToErrorResponse();
-                    }
-                }
+                // if (ex.InnerException is SqlException sqlException)
+                // {
+                //     switch (sqlException.Number)
+                //     {
+                //         case 8152 or 2628: // String or binary would be truncated
+                //             return request.Name.Length > 50 ? CreateUserResponse.ToTruncateResponse("Name") : CreateUserResponse.ToTruncateResponse("Email");
+                //         case 2601: // Unique index constraint violation
+                //             return CreateUserResponse.ToDuplicateResponse();
+                //         case 547: // Foreign key constraint violation
+                //             return CreateUserResponse.ToErrorResponse();
+                //         case 2627: // Unique constraint violation
+                //             return CreateUserResponse.ToErrorResponse();
+                //         default:
+                //             return CreateUserResponse.ToErrorResponse();
+                //     }
+                // }
+                Console.WriteLine(ex);
                 return CreateUserResponse.ToErrorResponse();
             }
         }
@@ -86,26 +102,40 @@ namespace UserAPI.Application.Services
             try
             {
                 var users = requests.Select(user => new User(user.Name, user.Email, user.Role, Utils.SetPassword(user.Password))).ToList();
+                // await _context.Users.AddRangeAsync(users);
+                // await _context.SaveChangesAsync();
+                // return requests.Select(user => CreateUserResponse.ToResponse(new User(user.Name, user.Email, user.Role, string.Empty))).ToList();
+
                 await _context.Users.AddRangeAsync(users);
                 await _context.SaveChangesAsync();
-                return requests.Select(user => CreateUserResponse.ToSuccessResponse(user.Name, user.Email)).ToList();
+
+                var responses = new List<CreateUserResponse>();
+
+                for (int i = 0; i < users.Count; i++)
+                {
+                    var rolePermissions = await _roleService.GetAllRolePermissions(requests[i].Role);
+                    responses.Add(CreateUserResponse.ToResponse(users[i], rolePermissions));
+                }
+
+                return responses;
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException is SqlException sqlException)
-                {
-                    if (sqlException.Number == 8152 || sqlException.Number == 2628)
-                    {
-                        var results = new List<CreateUserResponse>();
-                        foreach (var request in requests)
-                        {
-                            if (request.Name.Length > 50) results.Add(CreateUserResponse.ToTruncateResponse("Name"));
-                            else if (request.Email.Length > 50) results.Add(CreateUserResponse.ToTruncateResponse("Email"));
-                            else results.Add(CreateUserResponse.ToErrorResponse());
-                        }
-                        return results;
-                    }
-                }
+                // if (ex.InnerException is SqlException sqlException)
+                // {
+                //     if (sqlException.Number == 8152 || sqlException.Number == 2628)
+                //     {
+                //         var results = new List<CreateUserResponse>();
+                //         foreach (var request in requests)
+                //         {
+                //             if (request.Name.Length > 50) results.Add(CreateUserResponse.ToTruncateResponse("Name"));
+                //             else if (request.Email.Length > 50) results.Add(CreateUserResponse.ToTruncateResponse("Email"));
+                //             else results.Add(CreateUserResponse.ToErrorResponse());
+                //         }
+                //         return results;
+                //     }
+                // }
+                Console.WriteLine(ex);
                 return new List<CreateUserResponse> { CreateUserResponse.ToErrorResponse() };
             }
         }
@@ -138,8 +168,9 @@ namespace UserAPI.Application.Services
         public async Task<GetUserResponse> GetUserById(Guid id)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-            if (user == null) return GetUserResponse.ToNotFoundUpdateResponse();
-            return GetUserResponse.ToResponse(user);
+            if (user == null) return GetUserResponse.ToNotFoundResponse();
+            var rolePermissions = await _roleService.GetAllRolePermissions(user.Role);
+            return GetUserResponse.ToResponse(user, rolePermissions);
         }
     }
 }

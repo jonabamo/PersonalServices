@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UserAPI.Application.DTOs.Requests;
+using UserAPI.Application.DTOs;
 using UserAPI.Application.Interfaces;
 using UserAPI.Application.Services;
 

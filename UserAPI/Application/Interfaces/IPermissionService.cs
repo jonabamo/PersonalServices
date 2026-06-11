@@ -1,5 +1,4 @@
-﻿using UserAPI.Application.DTOs.Requests;
-using UserAPI.Application.DTOs.Responses;
+﻿using UserAPI.Application.DTOs;
 using UserAPI.Domain.Entities;
 
 namespace UserAPI.Application.Interfaces
@@ -7,10 +6,8 @@ namespace UserAPI.Application.Interfaces
     public interface IPermissionService
     {
         Task<IEnumerable<GetPermisionResponse>> GetAllPermissions();
-        Task<GetPermisionResponse> GetPermissionResponseById(int id);
-        Task<GetPermisionResponse> GetPermissionResponseByName(string name);
-        Task<Permission?> GetPermissionById(int id);
-        Task<Permission?> GetPermissionByName(string name);
+        Task<GetPermisionResponse> GetPermissionByName(string name);
+        Task<GetPermisionResponse?> GetPermissionById(int id);
         Task<int> CreatePermission(CreatePermissionRequest permission);
         Task UpdatePermissionById(int id, CreatePermissionRequest permission);
         Task DeletePermissionById(int id);

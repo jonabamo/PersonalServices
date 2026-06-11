@@ -3,8 +3,7 @@ using UserAPI.Domain.Entities;
 using UserAPI.Application.Interfaces;
 using UserAPI.Data;
 using Microsoft.EntityFrameworkCore;
-using UserAPI.Application.DTOs.Requests;
-using UserAPI.Application.DTOs.Responses;
+using UserAPI.Application.DTOs;
 
 namespace UserAPI.Application.Services;
 public class RolesService : IRoleService
@@ -16,43 +15,43 @@ public class RolesService : IRoleService
         _context = context;
     }
 
-    public async Task<IEnumerable<GetRoleResponse>> GetAllRoles(){
+    public async Task<IEnumerable<GetRoleResponse>> GetAllRolePermissions(){
         var roles = await _context.Roles
             .Include(r => r.RolePermissions)
             .ThenInclude(rp => rp.Permission)
             .ToListAsync();
             
-        return roles.Select(r => new GetRoleResponse(
+        return roles.Select(r => GetRoleResponse.ToResponse(
             r.RoleId,
             r.Name,
             r.RolePermissions.Select(rp => rp.Permission.Name).ToList()
         )).ToList();
     }
 
-    public async Task<GetRoleResponse?> GetRoleById(int id){
+    public async Task<GetRoleResponse?> GetAllRolePermissions(int roleId){
         var role = await _context.Roles
             .Include(r => r.RolePermissions)
             .ThenInclude(rp => rp.Permission)
-            .FirstOrDefaultAsync(r => r.RoleId == id);
+            .FirstOrDefaultAsync(r => r.RoleId == roleId);
             
-        if (role == null) return null;
+        if (role == null) return GetRoleResponse.ToNotFoundResponse();
         
-        return new GetRoleResponse(
+        return GetRoleResponse.ToResponse(
             role.RoleId,
             role.Name,
             role.RolePermissions.Select(rp => rp.Permission.Name).ToList()
         );
     }
 
-    public async Task<GetRoleResponse?> GetRoleByName(string name){
+    public async Task<GetRoleResponse?> GetAllRolePermissions(string roleName){
         var role = await _context.Roles
             .Include(r => r.RolePermissions)
             .ThenInclude(rp => rp.Permission)
-            .FirstOrDefaultAsync(r => r.Name == name);
+            .FirstOrDefaultAsync(r => r.Name == roleName);
             
-        if (role == null) return null;
+        if (role == null) return GetRoleResponse.ToNotFoundResponse();
         
-        return new GetRoleResponse(
+        return GetRoleResponse.ToResponse(
             role.RoleId,
             role.Name,
             role.RolePermissions.Select(rp => rp.Permission.Name).ToList()
@@ -60,8 +59,8 @@ public class RolesService : IRoleService
     }   
 
     public async Task<int> CreateRole(CreateRoleRequest request){
-        var existingRole = await GetRoleByName(request.Name);
-        if (existingRole != null) return existingRole.RoleId;
+        var existingRolePermissions = await _context.Roles.FirstOrDefaultAsync(r => r.Name == request.Name);
+        if (existingRolePermissions != null) return existingRolePermissions.RoleId;
         var newRole = new Role { Name = request.Name };
         _context.Roles.Add(newRole);
         await _context.SaveChangesAsync();

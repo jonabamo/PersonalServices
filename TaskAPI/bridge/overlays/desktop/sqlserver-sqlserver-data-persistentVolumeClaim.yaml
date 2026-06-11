@@ -1,9 +1,0 @@
-#! sqlserver-sqlserver-data-persistentVolumeClaim.yaml
-# Generated code, do not edit
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-    name: sqlserver-sqlserver-data
-    namespace: taskapi
-spec:
-    storageClassName: "hostpath" # see docker/desktop-storage-provisioner

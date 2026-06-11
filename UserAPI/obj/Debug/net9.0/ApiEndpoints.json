@@ -1,6 +1,6 @@
 [
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "GetCount",
     "RelativePath": "count-users",
     "HttpMethod": "GET",
@@ -20,7 +20,7 @@
     ]
   },
   {
-    "ContainingType": "TaskAPI.API.Controllers.PermissionController",
+    "ContainingType": "UserAPI.API.Controllers.PermissionController",
     "Method": "CreateRolePermission",
     "RelativePath": "create-role-permission",
     "HttpMethod": "POST",
@@ -29,14 +29,14 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "TaskAPI.Application.DTOs.Requests.CreateRolePermissionRequest",
+        "Type": "UserAPI.Application.DTOs.CreateRolePermissionRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "CreateUser",
     "RelativePath": "create-user",
     "HttpMethod": "POST",
@@ -45,14 +45,14 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "TaskAPI.Application.DTOs.Requests.CreateUserRequest",
+        "Type": "UserAPI.Application.DTOs.CreateUserRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "CreateUserBulk",
     "RelativePath": "create-users",
     "HttpMethod": "POST",
@@ -61,14 +61,14 @@
     "Parameters": [
       {
         "Name": "request",
-        "Type": "System.Collections.Generic.List\u00601[[TaskAPI.Application.DTOs.Requests.CreateUserRequest, TaskAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[UserAPI.Application.DTOs.CreateUserRequest, UserAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "DeleteUser",
     "RelativePath": "delete-user/{id}",
     "HttpMethod": "DELETE",
@@ -84,7 +84,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "DeleteAll",
     "RelativePath": "delete-users",
     "HttpMethod": "DELETE",
@@ -104,7 +104,7 @@
     ]
   },
   {
-    "ContainingType": "TaskAPI.API.Controllers.PermissionController",
+    "ContainingType": "UserAPI.API.Controllers.PermissionController",
     "Method": "GetAllRolePermission",
     "RelativePath": "get-all-role-permissions",
     "HttpMethod": "GET",
@@ -114,7 +114,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "GetAll",
     "RelativePath": "get-all-users",
     "HttpMethod": "GET",
@@ -124,7 +124,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.API.Controllers.PermissionController",
+    "ContainingType": "UserAPI.API.Controllers.PermissionController",
     "Method": "GetRolePermissionByRoleName",
     "RelativePath": "get-role-permissions/{roleName}",
     "HttpMethod": "GET",
@@ -140,7 +140,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "GetById",
     "RelativePath": "get-user-by-id/{id}",
     "HttpMethod": "GET",
@@ -156,7 +156,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "GetStartsWith",
     "RelativePath": "get-users/{startsWith}",
     "HttpMethod": "GET",
@@ -172,7 +172,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "Login",
     "RelativePath": "login",
     "HttpMethod": "POST",
@@ -188,7 +188,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TaskAPI.Controllers.UserController",
+    "ContainingType": "UserAPI.Controllers.UserController",
     "Method": "UpdateUser",
     "RelativePath": "update-user/{id}",
     "HttpMethod": "PUT",
@@ -202,7 +202,7 @@
       },
       {
         "Name": "request",
-        "Type": "TaskAPI.Application.DTOs.Requests.UpdateUserRequest",
+        "Type": "UserAPI.Application.DTOs.UpdateUserRequest",
         "IsRequired": true
       }
     ],

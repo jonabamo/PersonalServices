@@ -1,8 +1,7 @@
 ﻿namespace UserAPI.Application.Interfaces;
 
 using Microsoft.AspNetCore.Identity.Data;
-using UserAPI.Application.DTOs.Requests;
-using UserAPI.Application.DTOs.Responses;
+using UserAPI.Application.DTOs;
 
 public interface ILoginService
 {

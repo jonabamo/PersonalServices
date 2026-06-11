@@ -2,4 +2,5 @@
 ./UserAPI/obj/*
 ./UserAPI/bin/Debug/*
 ./UserAPI/bin/Release/*
+.UserAPI/.env
 .vs/ServiceAPI/v17/.suo

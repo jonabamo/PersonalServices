@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using UserAPI.Common;
-using UserAPI.Application.DTOs.Requests;
-using UserAPI.Application.DTOs.Responses;
+using UserAPI.Application.DTOs;
 using UserAPI.Application.Interfaces;
 using UserAPI.Data;
 using Microsoft.EntityFrameworkCore;
