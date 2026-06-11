@@ -222,3 +222,4 @@ D:\GitHub\PersonalServices\UserAPI.Tests\obj\Debug\net9.0\refint\UserAPI.Tests.d
 D:\GitHub\PersonalServices\UserAPI.Tests\obj\Debug\net9.0\UserAPI.Tests.pdb
 D:\GitHub\PersonalServices\UserAPI.Tests\obj\Debug\net9.0\UserAPI.Tests.genruntimeconfig.cache
 D:\GitHub\PersonalServices\UserAPI.Tests\obj\Debug\net9.0\ref\UserAPI.Tests.dll
+D:\GitHub\PersonalServices\UserAPI.Tests\bin\Debug\net9.0\EFCore.NamingConventions.dll

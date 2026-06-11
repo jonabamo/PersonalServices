@@ -23,7 +23,9 @@ public class UserServiceTests
 
         var configuration = new ConfigurationBuilder().Build();
 
-        var service = new UserService(context, configuration);
+        var roleService = new RolesService(context);
+
+        var service = new UserService(context, configuration, roleService);
 
         var request = new CreateUserRequest
         {
@@ -63,7 +65,9 @@ public class UserServiceTests
 
         var configuration = new ConfigurationBuilder().Build();
 
-        var service = new UserService(context, configuration);
+        var roleService = new RolesService(context);
+
+        var service = new UserService(context, configuration, roleService);
 
         var request = new CreateUserRequest
         {
@@ -113,7 +117,9 @@ public class UserServiceTests
 
         var configuration = new ConfigurationBuilder().Build();
 
-        var service = new UserService(context, configuration);
+        var roleService = new RolesService(context);
+
+        var service = new UserService(context, configuration, roleService);
 
         var nonExistingId = Guid.NewGuid();
 
@@ -129,8 +135,6 @@ public class UserServiceTests
 
         response.Message.Should().Be(ErrorCodes.UserNotFound);
 
-        response.Name.Should().BeEmpty();
-
-        response.Role.Should().BeEmpty();
+        response.StatusCode.Should().Be(404);
     }
 }
