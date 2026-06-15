@@ -6,3 +6,4 @@
 .vs/ServiceAPI/v17/.suo
 UserAPI/obj/Debug/
 UserAPI.Tests/obj/Debug/
+UserAPI/bin/Debug/*
