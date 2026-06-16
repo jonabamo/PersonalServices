@@ -1,3 +1,4 @@
+using System.Collections;
 using Microsoft.EntityFrameworkCore;
 using UserAPI.Application.DTOs;
 using UserAPI.Application.Interfaces;
@@ -25,20 +26,60 @@ namespace UserAPI.Application.Services
             return await _context.Users.CountAsync();
         }
 
-        public async Task<List<GetUserResponse>> GetAllUsers()
+        public async Task<BaseListResponse<UserResponseItemDto>> GetAllUsers()
         {
-            var users = await _context.Users.AsNoTracking().ToListAsync();
+            var databaseUsers = await _context.Users.AsNoTracking().ToListAsync();
 
-            var responses = new List<GetUserResponse>();
+            var uniqueRoleNames = databaseUsers
+            .Select(u => u.Role)
+            .Where(name => !string.IsNullOrEmpty(name))
+            .Distinct()
+            .ToList();
 
-                for (int i = 0; i < users.Count; i++)
+            var rolesDictionary = await _context.Roles
+                .Include(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
+                .Where(r => uniqueRoleNames.Contains(r.Name))
+                .ToDictionaryAsync(
+                    r => r.Name.ToLower(), 
+                    r => GetRoleResponse.ToResponse(
+                        r.RoleId,
+                        r.Name, 
+                        r.RolePermissions.Select(rp => rp.Permission.Name).ToList()
+                    )
+                );
+
+            var usersList = databaseUsers.Select(u => 
+            {
+                string userRoleKey = u.Role?.ToLower() ?? string.Empty;
+                rolesDictionary.TryGetValue(userRoleKey, out var roleData);
+
+                return new UserResponseItemDto
                 {
-                    var rolePermissions = await _roleService.GetAllRolePermissions(users[i].Role);
-                    responses.Add(GetUserResponse.ToResponse(users[i], rolePermissions));
-                }
+                    User = new UserDto
+                    {
+                        Name = u.Name,
+                        Email = u.Email
+                    },
+                    Role = new RoleDto
+                    {
+                        RoleId = roleData?.RoleId ?? 0,
+                        RoleName = u.Role ?? "Unknown",
+                        Permissions = roleData?.Permissions ?? new List<string>()
+                    }
+                };
+            }).ToList();
 
-            return responses;
-            //return users.Select(GetUserResponse.ToResponse).ToList();
+            var response = new BaseListResponse<UserResponseItemDto>
+            {
+                Success = true,
+                Message = usersList.Count > 0 ? "Users Found" : "No users found",
+                StatusCode = 200,
+                TotalRecords = usersList.Count,
+                Data = usersList
+            };
+
+            return response;
         }
 
         public async Task<string> GetUserPassword(string userEmail)
@@ -48,72 +89,121 @@ namespace UserAPI.Application.Services
             return user.Password;
         }
 
-        public async Task<List<GetUserResponse>> GetUsersStartsWith(string startsWith)
+        public async Task<BaseListResponse<UserResponseItemDto>> GetUsersStartsWith(string startsWith)
         {
-            var users = await _context.Users.AsNoTracking().Where(u => u.Name.StartsWith(startsWith)).ToListAsync();
+            var databaseUsers = await _context.Users.AsNoTracking().Where(u => u.Name.StartsWith(startsWith)).ToListAsync();
 
-            var responses = new List<GetUserResponse>();
+            var uniqueRoleNames = databaseUsers
+            .Select(u => u.Role)
+            .Where(name => !string.IsNullOrEmpty(name))
+            .Distinct()
+            .ToList();
 
-                for (int i = 0; i < users.Count; i++)
+            var rolesDictionary = await _context.Roles
+                .Include(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
+                .Where(r => uniqueRoleNames.Contains(r.Name))
+                .ToDictionaryAsync(
+                    r => r.Name.ToLower(), 
+                    r => GetRoleResponse.ToResponse(
+                        r.RoleId,
+                        r.Name, 
+                        r.RolePermissions.Select(rp => rp.Permission.Name).ToList()
+                    )
+                );
+
+            var usersList = databaseUsers.Select(u => 
+            {
+                string userRoleKey = u.Role?.ToLower() ?? string.Empty;
+                rolesDictionary.TryGetValue(userRoleKey, out var roleData);
+
+                return new UserResponseItemDto
                 {
-                    var rolePermissions = await _roleService.GetAllRolePermissions(users[i].Role);
-                    responses.Add(GetUserResponse.ToResponse(users[i], rolePermissions));
-                }
+                    User = new UserDto
+                    {
+                        Name = u.Name,
+                        Email = u.Email
+                    },
+                    Role = new RoleDto
+                    {
+                        RoleId = roleData?.RoleId ?? 0,
+                        RoleName = u.Role ?? "Unknown",
+                        Permissions = roleData?.Permissions ?? new List<string>()
+                    }
+                };
+            }).ToList();
 
-            return responses;
-            //return users.Select(GetUserResponse.ToResponse).ToList();
+            var response = new BaseListResponse<UserResponseItemDto>
+            {
+                Success = true,
+                Message = usersList.Count > 0 ? "Users Found" : "No users found",
+                StatusCode = 200,
+                TotalRecords = usersList.Count,
+                Data = usersList
+            };
+
+            return response;
         }
 
         public async Task<CreateUserResponse> CreateUser(CreateUserRequest request)
         {
             try
             {
-                var user = new User(request.Name, request.Email, request.Role, Utils.SetPassword(request.Password));
-                await _context.Users.AddAsync(user);
-                await _context.SaveChangesAsync();
+                var user = await _context.Users.AsNoTracking().Where(u => u.Email.Equals(request.Email)).FirstOrDefaultAsync();
+
+                if (user == null)
+                {
+                    user = new User(request.Name, request.Email, request.Role, Utils.SetPassword(request.Password));
+                    await _context.Users.AddAsync(user);
+                    await _context.SaveChangesAsync();
+                }
+                
                 var rolePermissions = await _roleService.GetAllRolePermissions(request.Role);
                 return CreateUserResponse.ToResponse(user, rolePermissions);
             }
             catch (DbUpdateException ex)
             {
-                // if (ex.InnerException is SqlException sqlException)
-                // {
-                //     switch (sqlException.Number)
-                //     {
-                //         case 8152 or 2628: // String or binary would be truncated
-                //             return request.Name.Length > 50 ? CreateUserResponse.ToTruncateResponse("Name") : CreateUserResponse.ToTruncateResponse("Email");
-                //         case 2601: // Unique index constraint violation
-                //             return CreateUserResponse.ToDuplicateResponse();
-                //         case 547: // Foreign key constraint violation
-                //             return CreateUserResponse.ToErrorResponse();
-                //         case 2627: // Unique constraint violation
-                //             return CreateUserResponse.ToErrorResponse();
-                //         default:
-                //             return CreateUserResponse.ToErrorResponse();
-                //     }
-                // }
                 Console.WriteLine(ex);
                 return CreateUserResponse.ToErrorResponse();
             }
         }
 
-        public async Task<List<CreateUserResponse>> CreateUsers(List<CreateUserRequest> requests)
+        public async Task<List<CreateUserResponse>> CreateUsers(List<CreateUserRequest> incomingUsers)
         {
             try
             {
-                var users = requests.Select(user => new User(user.Name, user.Email, user.Role, Utils.SetPassword(user.Password))).ToList();
-                // await _context.Users.AddRangeAsync(users);
-                // await _context.SaveChangesAsync();
-                // return requests.Select(user => CreateUserResponse.ToResponse(new User(user.Name, user.Email, user.Role, string.Empty))).ToList();
+                var incomingEmails = incomingUsers.Select(u => u.Email).ToList();
 
-                await _context.Users.AddRangeAsync(users);
-                await _context.SaveChangesAsync();
+                var existingEmailsSet = (await _context.Users
+                    .Where(u => incomingEmails.Contains(u.Email))
+                    .Select(u => u.Email.ToLower())
+                    .ToListAsync())
+                    .ToHashSet();
+
+                var usersToCreateDtos = incomingUsers
+                    .Where(u => !existingEmailsSet.Contains(u.Email.ToLower()))
+                    .ToList();
+
+                if (usersToCreateDtos.Any())
+                {
+                    var newUsersEntities = usersToCreateDtos.Select(dto => new User (
+                        dto.Name,
+                        dto.Email,
+                        dto.Role,
+                        Utils.SetPassword(dto.Password) 
+                    )).ToList();
+
+                    await _context.Users.AddRangeAsync(newUsersEntities);
+                    await _context.SaveChangesAsync();
+                }
+
+                var users = incomingUsers.Select(user => new User(user.Name, user.Email, user.Role, Utils.SetPassword(user.Password))).ToList();
 
                 var responses = new List<CreateUserResponse>();
 
                 for (int i = 0; i < users.Count; i++)
                 {
-                    var rolePermissions = await _roleService.GetAllRolePermissions(requests[i].Role);
+                    var rolePermissions = await _roleService.GetAllRolePermissions(incomingUsers[i].Role);
                     responses.Add(CreateUserResponse.ToResponse(users[i], rolePermissions));
                 }
 
@@ -121,20 +211,6 @@ namespace UserAPI.Application.Services
             }
             catch (DbUpdateException ex)
             {
-                // if (ex.InnerException is SqlException sqlException)
-                // {
-                //     if (sqlException.Number == 8152 || sqlException.Number == 2628)
-                //     {
-                //         var results = new List<CreateUserResponse>();
-                //         foreach (var request in requests)
-                //         {
-                //             if (request.Name.Length > 50) results.Add(CreateUserResponse.ToTruncateResponse("Name"));
-                //             else if (request.Email.Length > 50) results.Add(CreateUserResponse.ToTruncateResponse("Email"));
-                //             else results.Add(CreateUserResponse.ToErrorResponse());
-                //         }
-                //         return results;
-                //     }
-                // }
                 Console.WriteLine(ex);
                 return new List<CreateUserResponse> { CreateUserResponse.ToErrorResponse() };
             }

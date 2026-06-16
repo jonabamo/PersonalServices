@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Identity.Data;
 
 public interface IUserService
 {
-    Task<List<GetUserResponse>> GetAllUsers();
+    Task<BaseListResponse<UserResponseItemDto>> GetAllUsers();
     Task<string> GetUserPassword(string userEmail);
-    Task<List<GetUserResponse>> GetUsersStartsWith(string startsWith);
+    Task<BaseListResponse<UserResponseItemDto>> GetUsersStartsWith(string startsWith);
     Task<CreateUserResponse> CreateUser(CreateUserRequest request);
     Task<List<CreateUserResponse>> CreateUsers(List<CreateUserRequest> requests);
     Task<UpdateUserResponse> UpdateUserById(Guid id, UpdateUserRequest request);

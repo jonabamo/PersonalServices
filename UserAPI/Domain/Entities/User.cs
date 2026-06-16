@@ -35,7 +35,7 @@ public class User
         Role = role;
         Password = password;
     }
-
+    
     public void Update(string name, string email, string role, string password){
         if(string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name cannot be empty or default!", nameof(name));
         if(string.IsNullOrWhiteSpace(email)) throw new ArgumentException("Email cannot be empty or default!", nameof(email));

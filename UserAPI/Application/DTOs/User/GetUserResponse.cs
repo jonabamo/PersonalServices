@@ -28,6 +28,13 @@ public class GetUserResponse : BaseResponse
         };
     }
 
+    public GetUserResponse(bool success, string message, List<User> userList, List<Permission> userPermissions)
+    {
+        Success = success;
+        Message = message;
+        StatusCode = StatusCodes.Status200OK;
+    }
+
     public GetUserResponse(bool success, string message, int statusCode)
     {
         Success = success;
