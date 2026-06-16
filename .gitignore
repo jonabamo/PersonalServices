@@ -7,3 +7,6 @@
 UserAPI/obj/Debug/
 UserAPI.Tests/obj/Debug/
 UserAPI/bin/Debug/*
+UserAPI/appsettings.Development.json
+UserAPI/appsettings.json
+UserAPI.Tests/bin/Debug/
