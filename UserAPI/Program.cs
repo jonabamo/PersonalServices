@@ -8,15 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.DefaultIgnoreCondition = 
         System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     options.JsonSerializerOptions.WriteIndented = true;
 });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -46,7 +44,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"] ?? ""))
         };
     });
 
@@ -67,10 +65,9 @@ using (var scope = app.Services.CreateScope())
     var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
     var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
     var rolePermissionService = scope.ServiceProvider.GetRequiredService<IRolePermissionService>();
-    await context.SeedInitialData(userService, roleService, permissionService, rolePermissionService);
+    await context.SeedInitialData(app.Configuration, userService, roleService, permissionService, rolePermissionService);
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

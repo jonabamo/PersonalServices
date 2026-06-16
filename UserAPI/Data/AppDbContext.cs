@@ -44,8 +44,15 @@ public class AppDbContext : DbContext{
 public static class AppDbContextExtensions
 {
 
-    public static async Task SeedInitialData(this AppDbContext context, IUserService userService, IRoleService roleService, IPermissionService permissionService, IRolePermissionService rolePermissionService)
+    public static async Task SeedInitialData(this AppDbContext context, IConfiguration configuration, IUserService userService, IRoleService roleService, IPermissionService permissionService, IRolePermissionService rolePermissionService)
     {
+        string? adminPassword = configuration["SeedData:AdminPassword"];
+
+        if (string.IsNullOrEmpty(adminPassword))
+        {
+            throw new Exception("Critical Error: Admin password for seeding is not configured in User Secrets!");
+        }
+
         if (await context.Users.AnyAsync()) return; 
 
         var userRoleId = await roleService.CreateRole(new CreateRoleRequest { Name = "User" });
@@ -73,9 +80,6 @@ public static class AppDbContextExtensions
         await rolePermissionService.CreateRolePermission(superAdminRoleId, editDataPermissionId);
         await rolePermissionService.CreateRolePermission(superAdminRoleId, deleteDataPermissionId);
 
-        // await userService.CreateUser(new Application.DTOs.CreateUserRequest { Name = "John Doe (U)", Email = "johndoe@email.com", Role = "User", Password ="johndoe2026." });
-        // await userService.CreateUser(new Application.DTOs.CreateUserRequest { Name = "Jane Doe (M)", Email = "janedoe@email.com", Role = "Manager", Password = "janedoe2026." });
-        // await userService.CreateUser(new Application.DTOs.CreateUserRequest { Name = "Peter Pan (A)", Email = "peterpan@email.com", Role = "Admin", Password = "peterpan2026." });
-        await userService.CreateUser(new Application.DTOs.CreateUserRequest { Name = "Helen Keller (SA)", Email = "hellenkeller@email.com", Role = "SuperAdmin", Password = "hellenkeller2026." });
+        await userService.CreateUser(new Application.DTOs.CreateUserRequest { Name = "Helen Keller (SA)", Email = "hellenkeller@email.com", Role = "SuperAdmin", Password = adminPassword });
     }
 }
