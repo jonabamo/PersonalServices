@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\GitHub\\PersonalServices\\UserAPI\\UserAPI.csproj": {}
+    "D:\\GitHub\\PersonalServices\\Users\\UserAPI\\UserAPI.csproj": {}
   },
   "projects": {
-    "D:\\GitHub\\PersonalServices\\UserAPI\\UserAPI.csproj": {
+    "D:\\GitHub\\PersonalServices\\Users\\UserAPI\\UserAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\GitHub\\PersonalServices\\UserAPI\\UserAPI.csproj",
+        "projectUniqueName": "D:\\GitHub\\PersonalServices\\Users\\UserAPI\\UserAPI.csproj",
         "projectName": "UserAPI",
-        "projectPath": "D:\\GitHub\\PersonalServices\\UserAPI\\UserAPI.csproj",
+        "projectPath": "D:\\GitHub\\PersonalServices\\Users\\UserAPI\\UserAPI.csproj",
         "packagesPath": "C:\\Users\\jonathan\\.nuget\\packages\\",
-        "outputPath": "D:\\GitHub\\PersonalServices\\UserAPI\\obj\\",
+        "outputPath": "D:\\GitHub\\PersonalServices\\Users\\UserAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
