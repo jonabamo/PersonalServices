@@ -5,13 +5,13 @@ using UserAPI.Common;
 public class UpdateUserResponse : BaseResponse
 {
     public UpdateUserResponse(bool success, string message){
-        Success = Success;
+        Success = success;
         Message = message;
         StatusCode = StatusCodes.Status200OK;
     }
 
     public UpdateUserResponse(bool success, string message, int statusCode){
-        Success = Success;
+        Success = success;
         Message = message;
         StatusCode = statusCode;
     }
@@ -30,5 +30,13 @@ public class UpdateUserResponse : BaseResponse
 
     public static UpdateUserResponse ToNotFoundUpdateResponse(string userName) => new UpdateUserResponse(
         false, "User " + userName + " not found!", 404
+    );
+
+    public static UpdateUserResponse ToConflictResponse(string message = "User was modified by another user. Please reload and try again.") => new UpdateUserResponse(
+        false, message, 409
+    );
+
+    public static UpdateUserResponse ToErrorResponse(string message = "Error updating user") => new UpdateUserResponse(
+        false, message, 500
     );
 }

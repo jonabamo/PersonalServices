@@ -218,27 +218,63 @@ namespace UserAPI.Application.Services
 
         public async Task<UpdateUserResponse> UpdateUserById(Guid id, UpdateUserRequest request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-            if (user == null) return UpdateUserResponse.ToNotFoundUpdateResponse(request.Name);
-            user.Update(request.Name, request.Email, request.Role, Utils.SetPassword(request.Password));
-            await _context.SaveChangesAsync();
-            return UpdateUserResponse.ToUpdateResponse();
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+                if (user == null) return UpdateUserResponse.ToNotFoundUpdateResponse(request.Name);
+                
+                user.Update(request.Name, request.Email, request.Role, Utils.SetPassword(request.Password));
+                await _context.SaveChangesAsync();
+                return UpdateUserResponse.ToUpdateResponse();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return UpdateUserResponse.ToConflictResponse();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return UpdateUserResponse.ToErrorResponse();
+            }
         }
 
         public async Task<DeleteUserResponse> DeleteUserById(Guid id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-            if (user == null) return DeleteUserResponse.ToNotFoundDeleteResponse(id);
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-            return DeleteUserResponse.ToSuccessDeleteResponse();
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+                if (user == null) return DeleteUserResponse.ToNotFoundDeleteResponse(id);
+                
+                // Soft delete: mark as deleted instead of physically removing
+                user.SoftDelete();
+                await _context.SaveChangesAsync();
+                return DeleteUserResponse.ToSuccessDeleteResponse();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return DeleteUserResponse.ToErrorResponse();
+            }
         }
 
         public async Task<DeleteUserResponse> DeleteAllUsers()
         {
-            _context.Users.RemoveRange(_context.Users);
-            await _context.SaveChangesAsync();
-            return DeleteUserResponse.ToSuccessDeleteAllResponse();
+            try
+            {
+                // Soft delete: mark all users as deleted instead of physically removing
+                var users = await _context.Users.ToListAsync();
+                foreach (var user in users)
+                {
+                    user.SoftDelete();
+                }
+                await _context.SaveChangesAsync();
+                return DeleteUserResponse.ToSuccessDeleteAllResponse();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return DeleteUserResponse.ToErrorResponse();
+            }
         }
 
         public async Task<GetUserResponse> GetUserById(Guid id)

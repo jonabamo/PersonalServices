@@ -20,15 +20,19 @@
         );
 
         public static DeleteUserResponse ToSuccessDeleteResponse(string name) => new DeleteUserResponse(
-           true, "User deleted successfully! Name: " + name, 201
+           true, "User deleted successfully! Name: " + name, 200
         );
 
         public static DeleteUserResponse ToSuccessDeleteAllResponse() => new DeleteUserResponse(
-            true, "All users deleted successfully!", 201
+            true, "All users deleted successfully!", 200
         );
 
         public static DeleteUserResponse ToNotFoundDeleteResponse(Guid id) => new DeleteUserResponse(
             false, "User with id " + id + " not found!", 404
+        );
+
+        public static DeleteUserResponse ToErrorResponse(string message = "Error deleting user") => new DeleteUserResponse(
+            false, message, 500
         );
     }
 }

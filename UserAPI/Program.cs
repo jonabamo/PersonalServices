@@ -4,6 +4,8 @@ using System.Text;
 using UserAPI.Application.Interfaces;
 using UserAPI.Application.Services;
 using UserAPI.Data;
+using UserAPI.API.Middleware;
+using UserAPI.API.BackgroundServices;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +24,8 @@ builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IRoleService, RolesService>();
 builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+builder.Services.AddScoped<IIdempotencyService, IdempotencyService>();
+builder.Services.AddHostedService<IdempotencyLogCleanupService>();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
@@ -61,6 +65,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await context.Database.MigrateAsync();
+
     var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
     var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
     var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
@@ -78,14 +84,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseIdempotencyMiddleware();
 
 app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    await dbContext.Database.MigrateAsync();
-}
 
 app.Run();

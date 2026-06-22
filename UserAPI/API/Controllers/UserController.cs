@@ -32,7 +32,10 @@ public class UserController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        return Ok(await _loginService.Login(request));
+        var result = await _loginService.Login(request);
+        return result.Success 
+            ? Ok(result) 
+            : StatusCode(result.StatusCode, result);
     }
 
     [HttpPost("/create-user")]
@@ -59,10 +62,9 @@ public class UserController : ControllerBase
     [Authorize(Policy = "CanEdit")]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
     {
-        //return Ok(await _userService.UpdateUserById(id, request));
         var result = await _userService.UpdateUserById(id, request);
         return result.Success 
-        ? StatusCode(StatusCodes.Status201Created, result) 
+        ? Ok(result) 
         : StatusCode(result.StatusCode, result);
     }
 
@@ -72,7 +74,7 @@ public class UserController : ControllerBase
     {
         var result = await _userService.DeleteUserById(id);
         return result.Success 
-        ? StatusCode(StatusCodes.Status201Created, result) 
+        ? Ok(result) 
         : StatusCode(result.StatusCode, result);
         
     }
@@ -83,7 +85,7 @@ public class UserController : ControllerBase
     {
         var result = await _userService.DeleteAllUsers();
         return result.Success
-        ? StatusCode(StatusCodes.Status201Created, result) 
+        ? Ok(result) 
         : StatusCode(result.StatusCode, result);
     }
 

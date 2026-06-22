@@ -20,6 +20,20 @@ public class User
     public string Role { get; private set; } = "User";
     public string Password { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Soft delete flag. When true, user is logically deleted but not physically removed.
+    /// </summary>
+    public bool IsDeleted { get; private set; } = false;
+
+    /// <summary>
+    /// Timestamp of last update, used for optimistic concurrency control
+    /// </summary>
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
+
+    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
+
     public User(string name, string email, string role, string password){
         if(string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name cannot be empty or default!", nameof(name));
         if(string.IsNullOrWhiteSpace(email)) throw new ArgumentException("Email cannot be empty or default!", nameof(email));
@@ -34,6 +48,9 @@ public class User
         Email = email;
         Role = role;
         Password = password;
+        IsDeleted = false;
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
     
     public void Update(string name, string email, string role, string password){
@@ -48,6 +65,16 @@ public class User
         Email = email;
         Role = role;
         Password = password;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Soft delete this user. Sets IsDeleted to true without physically removing the record.
+    /// </summary>
+    public void SoftDelete()
+    {
+        IsDeleted = true;
+        UpdatedAt = DateTime.UtcNow;
     }
  
 }

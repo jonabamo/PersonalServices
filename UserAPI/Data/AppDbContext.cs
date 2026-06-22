@@ -17,8 +17,12 @@ public class AppDbContext : DbContext{
     public DbSet<Role> Roles { get; set; }
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
+    public DbSet<IdempotencyLog> IdempotencyLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder){
+
+        // Global query filter for soft delete - automatically filter deleted users
+        modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
 
         //Composite PK
         modelBuilder.Entity<RolePermission>().HasKey(rp => new { rp.RoleId, rp.PermissionId });
@@ -38,6 +42,16 @@ public class AppDbContext : DbContext{
         modelBuilder.Entity<User>().Property(u => u.Name).HasMaxLength(50).IsRequired();
         modelBuilder.Entity<User>().Property(u => u.Email).HasMaxLength(120).IsRequired();
         modelBuilder.Entity<User>().Property(u => u.Role).HasMaxLength(20).IsRequired();
+        modelBuilder.Entity<User>().Property(u => u.RowVersion).IsRowVersion();
+
+        // Configure IdempotencyLog
+        modelBuilder.Entity<IdempotencyLog>().HasKey(il => il.IdempotencyKey);
+        modelBuilder.Entity<IdempotencyLog>().Property(il => il.IdempotencyKey).HasMaxLength(256).IsRequired();
+        modelBuilder.Entity<IdempotencyLog>().Property(il => il.ResponseBody).IsRequired();
+        modelBuilder.Entity<IdempotencyLog>().Property(il => il.RequestHash).HasMaxLength(64).IsRequired(); // SHA256 = 64 hex chars
+        modelBuilder.Entity<IdempotencyLog>().Property(il => il.HttpMethod).HasMaxLength(10).IsRequired();
+        modelBuilder.Entity<IdempotencyLog>().Property(il => il.Endpoint).HasMaxLength(255).IsRequired();
+        modelBuilder.Entity<IdempotencyLog>().HasIndex(il => il.ExpiresAt); // For cleanup queries
     }
 }
 
@@ -53,33 +67,43 @@ public static class AppDbContextExtensions
             throw new Exception("Critical Error: Admin password for seeding is not configured in User Secrets!");
         }
 
-        if (await context.Users.AnyAsync()) return; 
+        if (!await context.Roles.AnyAsync())
+        {
+            var userRoleId = await roleService.CreateRole(new CreateRoleRequest { Name = "User" });
+            var managerRoleId = await roleService.CreateRole(new CreateRoleRequest { Name = "Manager" });
+            var adminRoleId = await roleService.CreateRole(new CreateRoleRequest { Name = "Admin" });
+            var superAdminRoleId = await roleService.CreateRole(new CreateRoleRequest { Name = "SuperAdmin" });
 
-        var userRoleId = await roleService.CreateRole(new CreateRoleRequest { Name = "User" });
-        var managerRoleId = await roleService.CreateRole(new CreateRoleRequest { Name = "Manager" });
-        var adminRoleId = await roleService.CreateRole(new CreateRoleRequest { Name = "Admin" });
-        var superAdminRoleId =  await roleService.CreateRole(new CreateRoleRequest { Name = "SuperAdmin" });
+            var viewDataPermissionId = await permissionService.CreatePermission(new CreatePermissionRequest { Name = "ViewData" });
+            var createDataPermissionId = await permissionService.CreatePermission(new CreatePermissionRequest { Name = "CreateData" });
+            var editDataPermissionId = await permissionService.CreatePermission(new CreatePermissionRequest { Name = "EditData" });
+            var deleteDataPermissionId = await permissionService.CreatePermission(new CreatePermissionRequest { Name = "DeleteData" });
 
-        var viewDataPermissionId = await permissionService.CreatePermission(new CreatePermissionRequest { Name = "ViewData" });
-        var createDataPermissionId = await permissionService.CreatePermission(new CreatePermissionRequest { Name = "CreateData" });
-        var editDataPermissionId = await permissionService.CreatePermission(new CreatePermissionRequest { Name = "EditData" });
-        var deleteDataPermissionId = await permissionService.CreatePermission(new CreatePermissionRequest { Name = "DeleteData" });
+            await rolePermissionService.CreateRolePermission(userRoleId, viewDataPermissionId);
 
-        await rolePermissionService.CreateRolePermission(userRoleId, viewDataPermissionId);
+            await rolePermissionService.CreateRolePermission(managerRoleId, viewDataPermissionId);
+            await rolePermissionService.CreateRolePermission(managerRoleId, createDataPermissionId);
+            await rolePermissionService.CreateRolePermission(managerRoleId, editDataPermissionId);
 
-        await rolePermissionService.CreateRolePermission(managerRoleId, viewDataPermissionId);
-        await rolePermissionService.CreateRolePermission(managerRoleId, createDataPermissionId);
-        await rolePermissionService.CreateRolePermission(managerRoleId, editDataPermissionId);
-        
-        await rolePermissionService.CreateRolePermission(adminRoleId, viewDataPermissionId);
-        await rolePermissionService.CreateRolePermission(adminRoleId, createDataPermissionId);
-        await rolePermissionService.CreateRolePermission(adminRoleId, editDataPermissionId);
+            await rolePermissionService.CreateRolePermission(adminRoleId, viewDataPermissionId);
+            await rolePermissionService.CreateRolePermission(adminRoleId, createDataPermissionId);
+            await rolePermissionService.CreateRolePermission(adminRoleId, editDataPermissionId);
 
-        await rolePermissionService.CreateRolePermission(superAdminRoleId, viewDataPermissionId);
-        await rolePermissionService.CreateRolePermission(superAdminRoleId, createDataPermissionId);
-        await rolePermissionService.CreateRolePermission(superAdminRoleId, editDataPermissionId);
-        await rolePermissionService.CreateRolePermission(superAdminRoleId, deleteDataPermissionId);
+            await rolePermissionService.CreateRolePermission(superAdminRoleId, viewDataPermissionId);
+            await rolePermissionService.CreateRolePermission(superAdminRoleId, createDataPermissionId);
+            await rolePermissionService.CreateRolePermission(superAdminRoleId, editDataPermissionId);
+            await rolePermissionService.CreateRolePermission(superAdminRoleId, deleteDataPermissionId);
+        }
 
-        await userService.CreateUser(new Application.DTOs.CreateUserRequest { Name = "Helen Keller (SA)", Email = "hellenkeller@email.com", Role = "SuperAdmin", Password = adminPassword });
+        if (!await context.Users.AnyAsync())
+        {
+            await userService.CreateUser(new Application.DTOs.CreateUserRequest
+            {
+                Name = "Helen Keller (SA)",
+                Email = "hellenkeller@email.com",
+                Role = "SuperAdmin",
+                Password = adminPassword
+            });
+        }
     }
 }
